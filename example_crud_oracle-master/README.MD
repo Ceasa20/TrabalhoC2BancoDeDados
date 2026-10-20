@@ -1,3 +1,4 @@
+<!--
 # Exemplo de Sistema em Python fazendo CRUD no Oracle
 
 Esse sistema de exemplo é composto por um conjunto de tabelas que representam pedidos de vendas, contendo tabelas como: clientes, fornecedores, produtos, pedidos e itens de pedido.
@@ -127,3 +128,40 @@ Para que possa testar as conexões com o banco de dados Oracle e o módulo Conex
 ## Contato
 - [LinkedIn](https://linkedin.com/in/howardroatti)
 - [E-Mail](mailto:howardcruzroatti@gmail.com)
+-->
+
+# Sistema em Python de Locadora com CRUD no Oracle
+
+Sistema desenvolvido em Python para gerenciar uma locadora de veículos utilizando um banco de dados Oracle.
+
+## Funcionalidades
+
+- Cadastro, consulta, alteração e remoção de clientes;
+- Cadastro, consulta, alteração e remoção de carros;
+- Cadastro e gerenciamento de locações;
+- Registro da devolução dos veículos;
+- Relatórios relacionados às operações da locadora.
+
+## Tecnologias
+
+- Python;
+- Oracle Database;
+- `cx-Oracle` para conexão com o banco de dados.
+
+## Organização do projeto
+
+- `src/model`: modelos de clientes, carros e locações;
+- `src/controller`: operações de gerenciamento dos dados;
+- `src/conexion`: conexão e consultas ao Oracle;
+- `src/reports`: relatórios do sistema;
+- `sql`: scripts para criação das tabelas e dados de demonstração.
+
+## Quadro de produção
+
+Atualize os itens e responsáveis conforme o andamento do projeto.
+
+| Precisa ser feito | Em produção | Pronto |
+|---|---|---|
+| Item: __________________<br>Responsável: __________________ | Item: __________________<br>Responsável: __________________ | Item: __________________ |
+| Item: __________________<br>Responsável: __________________ | Item: __________________<br>Responsável: __________________ | Item: __________________ |
+| Item: __________________<br>Responsável: __________________ | Item: __________________<br>Responsável: __________________ | Item: __________________ |
