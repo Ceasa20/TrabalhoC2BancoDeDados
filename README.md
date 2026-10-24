@@ -156,12 +156,19 @@ Sistema desenvolvido em Python para gerenciar uma locadora de veículos utilizan
 - `src/reports`: relatórios do sistema;
 - `sql`: scripts para criação das tabelas e dados de demonstração.
 
-## Quadro de produção
+## Andamento do projeto
 
-Atualize os itens e responsáveis conforme o andamento do projeto.
+### Feito
 
-| Precisa ser feito | Em produção | Pronto |
-|---|---|---|
-| Item: __________________<br>Responsável: __________________ | Item: __________________<br>Responsável: __________________ | Item: __________________ |
-| Item: __________________<br>Responsável: __________________ | Item: __________________<br>Responsável: __________________ | Item: __________________ |
-| Item: __________________<br>Responsável: __________________ | Item: __________________<br>Responsável: __________________ | Item: __________________ |
+- [x] Models;
+- [x] Controllers;
+- [x] Criação das tabelas.
+
+### Precisa ser feito
+
+- [ ] Reports;
+- [ ] Utils;
+- [ ] Principal;
+- [ ] Script Python;
+- [ ] Relatórios SQL;
+- [ ] Testes.

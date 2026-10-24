@@ -1,35 +1,36 @@
 from pydoc import cli
 from model.carros import Carros
+from controller.controller_carro import Controller_Carro
 from model.clientes import Cliente
 from controller.controller_cliente import Controller_Cliente
-from model.fornecedores import Fornecedor
-from controller.controller_fornecedor import Controller_Fornecedor
+from model.locacao import Locacao
+from controller.controller_locacao import Controller_Locacao
 from conexion.oracle_queries import OracleQueries
 from datetime import date
 
-class Controller_Pedido:
+class Controller_Locacao:
     def __init__(self):
         self.ctrl_cliente = Controller_Cliente()
-        self.ctrl_fornecedor = Controller_Fornecedor()
+        self.ctrl_carros = Controller_Carro()
         
-    def inserir_pedido(self) -> Pedido:
+    def inserir_locacao(self) -> Locacao:
         ''' Ref.: https://cx-oracle.readthedocs.io/en/latest/user_guide/plsql_execution.html#anonymous-pl-sql-blocks'''
         
         # Cria uma nova conexão com o banco
         oracle = OracleQueries()
         
-        # Lista os clientes existentes para inserir no pedido
+        # Lista os clientes existentes para inserir na locacao
         self.listar_clientes(oracle, need_connect=True)
         cpf = str(input("Digite o número do CPF do Cliente: "))
         cliente = self.valida_cliente(oracle, cpf)
         if cliente == None:
             return None
 
-        # Lista os fornecedores existentes para inserir no pedido
-        self.listar_fornecedores(oracle, need_connect=True)
-        cnpj = str(input("Digite o número do CNPJ do Fornecedor: "))
-        fornecedor = self.valida_fornecedor(oracle, cnpj)
-        if fornecedor == None:
+        # Lista os carros existentes para inserir na locacao
+        self.listar_carros(oracle, need_connect=True)
+        placa = str(input("Digite a placa do Carro: "))
+        carro = self.valida_carro(oracle, placa)
+        if carro == None:
             return None
 
         data_hoje = date.today()
@@ -40,104 +41,104 @@ class Controller_Pedido:
         output_value = cursor.var(int)
 
         # Cria um dicionário para mapear as variáveis de entrada e saída
-        data = dict(codigo=output_value, data_pedido=data_hoje, cpf=cliente.get_CPF(), cnpj=fornecedor.get_CNPJ())
-        # Executa o bloco PL/SQL anônimo para inserção do novo produto e recuperação da chave primária criada pela sequence
+        data = dict(codigo=output_value, data_locacao=data_hoje, cpf=cliente.get_CPF(), placa=carro.get_Placa())
+        # Executa o bloco PL/SQL anônimo para inserção da nova locacao e recuperação da chave primária criada pela sequence
         cursor.execute("""
         begin
-            :codigo := PEDIDOS_CODIGO_PEDIDO_SEQ.NEXTVAL;
-            insert into pedidos values(:codigo, :data_pedido, :cpf, :cnpj);
+            :codigo := LOCACOES_CODIGO_LOCACAO_SEQ.NEXTVAL;
+            insert into locacoes values(:codigo, :data_locacao, :cpf, :placa);
         end;
         """, data)
-        # Recupera o código do novo produto
-        codigo_pedido = output_value.getvalue()
+        # Recupera o código da nova locação
+        codigo_locacao = output_value.getvalue()
         # Persiste (confirma) as alterações
         oracle.conn.commit()
-        # Recupera os dados do novo produto criado transformando em um DataFrame
-        df_pedido = oracle.sqlToDataFrame(f"select codigo_pedido, data_pedido from pedidos where codigo_pedido = {codigo_pedido}")
-        # Cria um novo objeto Produto
-        novo_pedido = Pedido(df_pedido.codigo_pedido.values[0], df_pedido.data_pedido.values[0], cliente, fornecedor)
-        # Exibe os atributos do novo produto
-        print(novo_pedido.to_string())
-        # Retorna o objeto novo_pedido para utilização posterior, caso necessário
-        return novo_pedido
+        # Recupera os dados da nova locação criada transformando em um DataFrame
+        df_locacao = oracle.sqlToDataFrame(f"select codigo_locacao, data_locacao from locacoes where codigo_locacao = {codigo_locacao}")
+        # Cria um novo objeto Locacao
+        nova_locacao = Locacao(df_locacao.codigo_locacao.values[0], df_locacao.data_locacao.values[0], cliente, carro)
+        # Exibe os atributos da nova locação
+        print(nova_locacao.to_string())
+        # Retorna o objeto nova_locacao para utilização posterior, caso necessário
+        return nova_locacao
 
-    def atualizar_pedido(self) -> Pedido:
+    def atualizar_locacao(self) -> Locacao:
         # Cria uma nova conexão com o banco que permite alteração
         oracle = OracleQueries(can_write=True)
         oracle.connect()
 
-        # Solicita ao usuário o código do produto a ser alterado
-        codigo_pedido = int(input("Código do Pedido que irá alterar: "))        
+        # Solicita ao usuário o código da locação a ser alterada
+        codigo_locacao = int(input("Código da Locação que irá alterar: "))        
 
-        # Verifica se o produto existe na base de dados
-        if not self.verifica_existencia_pedido(oracle, codigo_pedido):
+        # Verifica se a locação existe na base de dados
+        if not self.verifica_existencia_locacao(oracle, codigo_locacao):
 
-            # Lista os clientes existentes para inserir no pedido
+            # Lista os clientes existentes para inserir na locação
             self.listar_clientes(oracle)
             cpf = str(input("Digite o número do CPF do Cliente: "))
             cliente = self.valida_cliente(oracle, cpf)
             if cliente == None:
                 return None
 
-            # Lista os fornecedores existentes para inserir no pedido
-            self.listar_fornecedores(oracle)
-            cnpj = str(input("Digite o número do CNPJ do Fornecedor: "))
-            fornecedor = self.valida_fornecedor(oracle, cnpj)
-            if fornecedor == None:
+            # Lista os carros existentes para inserir na locação
+            self.listar_carros(oracle)
+            placa = str(input("Digite a placa do Carro: "))
+            carro = self.valida_carro(oracle, placa)
+            if carro == None:
                 return None
 
             data_hoje = date.today()
 
-            # Atualiza a descrição do produto existente
-            oracle.write(f"update pedidos set cpf = '{cliente.get_CPF()}', cnpj = '{fornecedor.get_CNPJ()}', data_pedido = to_date('{data_hoje}','yyyy-mm-dd') where codigo_pedido = {codigo_pedido}")
-            # Recupera os dados do novo produto criado transformando em um DataFrame
-            df_pedido = oracle.sqlToDataFrame(f"select codigo_pedido, data_pedido from pedidos where codigo_pedido = {codigo_pedido}")
-            # Cria um novo objeto Produto
-            pedido_atualizado = Pedido(df_pedido.codigo_pedido.values[0], df_pedido.data_pedido.values[0], cliente, fornecedor)
-            # Exibe os atributos do novo produto
-            print(pedido_atualizado.to_string())
-            # Retorna o objeto pedido_atualizado para utilização posterior, caso necessário
-            return pedido_atualizado
+            # Atualiza a descrição da locacao existente
+            oracle.write(f"update locacoes set cpf = '{cliente.get_CPF()}', placa = '{carro.get_Placa()}', data_locacao = to_date('{data_hoje}','yyyy-mm-dd') where codigo_locacao = {codigo_locacao}")
+            # Recupera os dados da nova locação criada transformando em um DataFrame
+            df_locacao = oracle.sqlToDataFrame(f"select codigo_locacao, data_locacao from locacoes where codigo_locacao = {codigo_locacao}")
+            # Cria um novo objeto Locacao
+            locacao_atualizada = Locacao(df_locacao.codigo_locacao.values[0], df_locacao.data_locacao.values[0], cliente, carro)
+            # Exibe os atributos da nova locação
+            print(locacao_atualizada.to_string())
+            # Retorna o objeto locacao_atualizada para utilização posterior, caso necessário
+            return locacao_atualizada
         else:
-            print(f"O código {codigo_pedido} não existe.")
+            print(f"O código {codigo_locacao} não existe.")
             return None
 
-    def excluir_pedido(self):
+    def excluir_locacao(self):
         # Cria uma nova conexão com o banco que permite alteração
         oracle = OracleQueries(can_write=True)
         oracle.connect()
 
-        # Solicita ao usuário o código do produto a ser alterado
-        codigo_pedido = int(input("Código do Pedido que irá excluir: "))        
+        # Solicita ao usuário o código da locação a ser excluída
+        codigo_locacao = int(input("Código da Locação que irá excluir: "))        
 
-        # Verifica se o produto existe na base de dados
-        if not self.verifica_existencia_pedido(oracle, codigo_pedido):            
-            # Recupera os dados do novo produto criado transformando em um DataFrame
-            df_pedido = oracle.sqlToDataFrame(f"select codigo_pedido, data_pedido, cpf, cnpj from pedidos where codigo_pedido = {codigo_pedido}")
-            cliente = self.valida_cliente(oracle, df_pedido.cpf.values[0])
-            fornecedor = self.valida_fornecedor(oracle, df_pedido.cnpj.values[0])
-            
-            opcao_excluir = input(f"Tem certeza que deseja excluir o pedido {codigo_pedido} [S ou N]: ")
+        # Verifica se a locação existe na base de dados
+        if not self.verifica_existencia_locacao(oracle, codigo_locacao):            
+            # Recupera os dados da nova locação criada transformando em um DataFrame
+            df_locacao = oracle.sqlToDataFrame(f"select codigo_locacao, data_locacao, cpf, placa from locacoes where codigo_locacao = {codigo_locacao}")
+            cliente = self.valida_cliente(oracle, df_locacao.cpf.values[0])
+            carro = self.valida_carro(oracle, df_locacao.placa.values[0])
+
+            opcao_excluir = input(f"Tem certeza que deseja excluir a locação {codigo_locacao} [S ou N]: ")
             if opcao_excluir.lower() == "s":
-                print("Atenção, caso o pedido possua itens, também serão excluídos!")
-                opcao_excluir = input(f"Tem certeza que deseja excluir o pedido {codigo_pedido} [S ou N]: ")
+                print("Atenção, caso a locação possua itens, também serão excluídos!")
+                opcao_excluir = input(f"Tem certeza que deseja excluir a locação {codigo_locacao} [S ou N]: ")
                 if opcao_excluir.lower() == "s":
                     # Revome o produto da tabela
-                    oracle.write(f"delete from itens_pedido where codigo_pedido = {codigo_pedido}")
-                    print("Itens do pedido removidos com sucesso!")
-                    oracle.write(f"delete from pedidos where codigo_pedido = {codigo_pedido}")
-                    # Cria um novo objeto Produto para informar que foi removido
-                    pedido_excluido = Pedido(df_pedido.codigo_pedido.values[0], df_pedido.data_pedido.values[0], cliente, fornecedor)
-                    # Exibe os atributos do produto excluído
-                    print("Pedido Removido com Sucesso!")
-                    print(pedido_excluido.to_string())
+                    oracle.write(f"delete from itens_locacao where codigo_locacao = {codigo_locacao}")
+                    print("Itens da locação removidos com sucesso!")
+                    oracle.write(f"delete from locacoes where codigo_locacao = {codigo_locacao}")
+                    # Cria um novo objeto Locacao para informar que foi removido
+                    locacao_excluida = Locacao(df_locacao.codigo_locacao.values[0], df_locacao.data_locacao.values[0], cliente, carro)
+                    # Exibe os atributos da locação excluída
+                    print("Locação Removida com Sucesso!")
+                    print(locacao_excluida.to_string())
         else:
-            print(f"O código {codigo_pedido} não existe.")
+            print(f"O código {codigo_locacao} não existe.")
 
-    def verifica_existencia_pedido(self, oracle:OracleQueries, codigo:int=None) -> bool:
-        # Recupera os dados do novo pedido criado transformando em um DataFrame
-        df_pedido = oracle.sqlToDataFrame(f"select codigo_pedido, data_pedido from pedidos where codigo_pedido = {codigo}")
-        return df_pedido.empty
+    def verifica_existencia_locacao(self, oracle:OracleQueries, codigo:int=None) -> bool:
+        # Recupera os dados da nova locação criada transformando em um DataFrame
+        df_locacao = oracle.sqlToDataFrame(f"select codigo_locacao, data_locacao from locacoes where codigo_locacao = {codigo}")
+        return df_locacao.empty
 
     def listar_clientes(self, oracle:OracleQueries, need_connect:bool=False):
         query = """
@@ -150,13 +151,14 @@ class Controller_Pedido:
             oracle.connect()
         print(oracle.sqlToDataFrame(query))
 
-    def listar_fornecedores(self, oracle:OracleQueries, need_connect:bool=False):
+
+    def listar_carros(self, oracle:OracleQueries, need_connect:bool=False):
         query = """
-                select f.cnpj
-                    , f.razao_social
-                    , f.nome_fantasia
-                from fornecedores f
-                order by f.nome_fantasia
+                select c.placa
+                    , c.razao_social
+                    , c.nome_fantasia
+                from carros c
+                order by c.nome_fantasia
                 """
         if need_connect:
             oracle.connect()
@@ -174,14 +176,16 @@ class Controller_Pedido:
             cliente = Cliente(df_cliente.cpf.values[0], df_cliente.nome.values[0])
             return cliente
 
-    def valida_fornecedor(self, oracle:OracleQueries, cnpj:str=None) -> Fornecedor:
-        if self.ctrl_fornecedor.verifica_existencia_fornecedor(oracle, cnpj):
-            print(f"O CNPJ {cnpj} informado não existe na base.")
+    def valida_carro(self, oracle:OracleQueries, placa:str=None) -> Carros:
+        if self.ctrl_carro.verifica_existencia_carro(oracle, placa):
+            print(f"A placa {placa} informada não existe na base.")
             return None
         else:
             oracle.connect()
-            # Recupera os dados do novo fornecedor criado transformando em um DataFrame
-            df_fornecedor = oracle.sqlToDataFrame(f"select cnpj, razao_social, nome_fantasia from fornecedores where cnpj = {cnpj}")
-            # Cria um novo objeto fornecedor
-            fornecedor = Fornecedor(df_fornecedor.cnpj.values[0], df_fornecedor.razao_social.values[0], df_fornecedor.nome_fantasia.values[0])
-            return fornecedor
+            # Recupera os dados do novo carro criado transformando em um DataFrame
+            df_carro = oracle.sqlToDataFrame(f"select placa, razao_social, nome_fantasia from carros where placa = {placa}")
+            # Cria um novo objeto carro
+            carro = Carros(df_carro.placa.values[0], df_carro.razao_social.values[0], df_carro.nome_fantasia.values[0])
+            return carro
+
+        
