@@ -1,2 +1,12 @@
+# Ambientes virtuais Python
+.venv/
+.venv*/
+venv/
+env/
+
+# Cache Python
 __pycache__/
 *.py[cod]
+
+# Configurações locais
+.env

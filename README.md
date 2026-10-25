@@ -163,12 +163,94 @@ Sistema desenvolvido em Python para gerenciar uma locadora de veículos utilizan
 - [x] Models;
 - [x] Controllers;
 - [x] Criação das tabelas.
+- [x] Reports;
+- [x] Utils;
+- [x] Principal;
+- [x] Script Python;
+- [x] Relatórios SQL;
 
 ### Precisa ser feito
 
-- [ ] Reports;
-- [ ] Utils;
-- [ ] Principal;
-- [ ] Script Python;
-- [ ] Relatórios SQL;
 - [ ] Testes.
+- [ ] Funcionamento com SUDO.
+
+
+### Configuração do ambiente de desenvolvimento sem SUDO
+
+
+### 1. Instalação do `uv` sem sudo
+
+O ambiente Linux utiliza Python 3.12, incompatível com algumas das versões antigas de bibliotecas exigidas pelo projeto. Para evitar alterações na instalação global do Python e não depender de permissões administrativas, foi utilizado o **uv**, gerenciador de versões e ambientes Python.
+
+Instale o `uv` no diretório do usuário:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Caso o comando `uv` não seja encontrado após a instalação, adicione o diretório de instalação ao `PATH`. No ambiente utilizado, foi necessário executar:
+
+```bash
+export PATH="$HOME/snap/code/205/.local/bin:$PATH"
+```
+
+Esse caminho pode variar conforme o ambiente. Para conferir a instalação:
+
+```bash
+uv --version
+```
+
+### 2. Criação do ambiente Python 3.10
+
+Na pasta `src` do projeto, instale o Python 3.10 e crie o ambiente virtual:
+
+```bash
+uv python install 3.10
+uv venv .venv310 --python 3.10
+source .venv310/bin/activate
+```
+
+Com o ambiente ativado, instale as dependências:
+
+```bash
+uv pip install cx-Oracle==8.3.0 pandas==1.4.4 numpy==1.23.2
+```
+
+O ambiente virtual mantém as bibliotecas isoladas do Python global do sistema.
+
+### 3. Ajustes na conexão com o Oracle
+
+No arquivo `conexion/oracle_queries.py`, foram realizadas as seguintes correções:
+
+- Ajuste da indentação dos métodos `__del__`, `connectionString()` e `connect()`, mantendo-os dentro da classe `OracleQueries`.
+- Alteração da conexão principal para utilizar o serviço `XEPDB1`, em vez do SID `XE`.
+- Inicialização de `self.conn` e `self.cur` com `None`, evitando erros caso a conexão falhe.
+- Ajuste dos métodos `__del__` e `close()` para verificar e fechar os recursos existentes.
+
+### 4. Configuração do banco de dados
+
+O Oracle XE 21c é executado em um container Docker, com a porta 1521 disponibilizada para conexão.
+
+Para iniciar o banco, caso o Docker e o serviço já estejam configurados:
+
+```bash
+docker compose up -d oracle
+```
+
+O arquivo `conexion/passphrase/authentication.oracle` deve existir localmente e conter as credenciais no formato:
+
+```text
+usuario,senha
+```
+
+### 5. Execução e validação
+
+Com o ambiente virtual ativado e o banco Oracle iniciado, execute:
+
+```bash
+python test.py
+```
+
+A execução foi validada com sucesso, incluindo conexão com o Oracle, execução de consultas SQL e retorno de resultados em DataFrames e JSON.
+
+
