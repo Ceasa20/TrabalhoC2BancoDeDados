@@ -136,8 +136,8 @@ Sistema desenvolvido em Python para gerenciar uma locadora de veículos utilizan
 
 ## Funcionalidades
 
-- Cadastro, consulta, alteração e remoção de clientes;
-- Cadastro, consulta, alteração e remoção de carros;
+- Cadastro, consulta, alteração e desativação de clientes;
+- Cadastro, consulta, alteração e desativação de carros;
 - Cadastro e gerenciamento de locações;
 - Registro da devolução dos veículos;
 - Relatórios relacionados às operações da locadora.
