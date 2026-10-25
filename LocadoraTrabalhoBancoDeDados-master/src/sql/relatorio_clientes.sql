@@ -1,4 +1,5 @@
 select c.cpf
-     , c.nome 
+     , c.nome
+     , c.telefone
   from clientes c
  order by c.nome

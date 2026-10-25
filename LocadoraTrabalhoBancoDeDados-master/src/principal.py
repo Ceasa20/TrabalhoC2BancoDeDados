@@ -1,19 +1,16 @@
 from utils import config
 from utils.splash_screen import SplashScreen
 from reports.relatorios import Relatorio
-from controller.controller_produto import Controller_Produto
+from controller.controller_carro import Controller_Carro
 from controller.controller_cliente import Controller_Cliente
-from controller.controller_fornecedor import Controller_Fornecedor
-from controller.controller_pedido import Controller_Pedido
-from controller.controller_item_pedido import Controller_Item_Pedido
+from controller.controller_locacao import Controller_Locacao
+
 
 tela_inicial = SplashScreen()
 relatorio = Relatorio()
-ctrl_produto = Controller_Produto()
+ctrl_carro = Controller_Carro()
 ctrl_cliente = Controller_Cliente()
-ctrl_fornecedor = Controller_Fornecedor()
-ctrl_pedido = Controller_Pedido()
-ctrl_item_pedido = Controller_Item_Pedido()
+ctrl_locacao = Controller_Locacao()
 
 def reports(opcao_relatorio:int=0):
 
@@ -33,15 +30,11 @@ def reports(opcao_relatorio:int=0):
 def inserir(opcao_inserir:int=0):
 
     if opcao_inserir == 1:                               
-        novo_produto = ctrl_produto.inserir_produto()
+        novo_carro = ctrl_carro.inserir_carro()
     elif opcao_inserir == 2:
         novo_cliente = ctrl_cliente.inserir_cliente()
     elif opcao_inserir == 3:
-        novo_fornecedor = ctrl_fornecedor.inserir_fornecedor()
-    elif opcao_inserir == 4:
-        novo_pedido = ctrl_pedido.inserir_pedido()
-    elif opcao_inserir == 5:
-        novo_item_pedido = ctrl_item_pedido.inserir_item_pedido()
+        novo_locacao = ctrl_locacao.inserir_locacao()
 
 def atualizar(opcao_atualizar:int=0):
 
