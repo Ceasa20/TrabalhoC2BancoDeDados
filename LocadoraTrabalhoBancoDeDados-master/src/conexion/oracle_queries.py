@@ -10,6 +10,8 @@
 #                  (3) https://cx-oracle.readthedocs.io/en/latest/index.html
 ###########################################################################
 import json
+from pathlib import Path
+
 import cx_Oracle
 from pandas import DataFrame
 
@@ -22,8 +24,13 @@ class OracleQueries:
         self.service_name = 'XEPDB1'
         self.sid = 'XE'
 
-        with open("conexion/passphrase/authentication.oracle", "r") as f:
-            self.user, self.passwd = f.read().split(',')            
+        credentials_path = (
+            Path(__file__).resolve().parent
+            / "passphrase"
+            / "authentication.oracle"
+        )
+        with credentials_path.open(encoding="utf-8") as f:
+            self.user, self.passwd = f.read().split(',')
 
     def __del__(self):
         if self.cur:
@@ -69,14 +76,14 @@ class OracleQueries:
         self.cur = self.conn.cursor()
         return self.cur
 
-    def sqlToDataFrame(self, query:str) -> DataFrame:
+    def sqlToDataFrame(self, query:str, params:dict=None) -> DataFrame:
         '''
         Esse método irá executar uma query
         Parameters:
         - query: consulta utilizada para recuperação dos dados
         return: um DataFrame da biblioteca Pandas
         '''
-        self.cur.execute(query)
+        self.cur.execute(query, params or {})
         rows = self.cur.fetchall()
         return DataFrame(rows, columns=[col[0].lower() for col in self.cur.description])
 
@@ -106,11 +113,11 @@ class OracleQueries:
         rows = self.cur.fetchall()
         return json.dumps(rows, default=str)
 
-    def write(self, query:str):
+    def write(self, query:str, params:dict=None):
         if not self.can_write:
             raise Exception('Can\'t write using this connection')
 
-        self.cur.execute(query)
+        self.cur.execute(query, params or {})
         self.conn.commit()
 
     def close(self):

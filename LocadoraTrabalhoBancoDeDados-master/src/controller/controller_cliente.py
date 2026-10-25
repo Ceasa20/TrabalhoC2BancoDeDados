@@ -21,11 +21,23 @@ class Controller_Cliente:
             # Solicita ao usuario o novo telefone
             telefone = input("Telefone (Novo): ")
             # Insere e persiste o novo cliente
-            oracle.write(f"insert into clientes values ('{cpf}', '{nome}', '{telefone}')")
+            oracle.write(
+                "insert into clientes (cpf, nome, telefone, ativo) "
+                "values (:cpf, :nome, :telefone, 'S')",
+                {"cpf": cpf, "nome": nome, "telefone": telefone}
+            )
             # Recupera os dados do novo cliente criado transformando em um DataFrame
-            df_cliente = oracle.sqlToDataFrame(f"select cpf, nome from clientes where cpf = '{cpf}'")
+            df_cliente = oracle.sqlToDataFrame(
+                "select cpf, nome, telefone, ativo from clientes where cpf = :cpf",
+                {"cpf": cpf}
+            )
             # Cria um novo objeto Cliente
-            novo_cliente = Cliente(df_cliente.cpf.values[0], df_cliente.nome.values[0], df_cliente.telefone.values[0] )
+            novo_cliente = Cliente(
+                df_cliente.cpf.values[0],
+                df_cliente.nome.values[0],
+                df_cliente.telefone.values[0],
+                df_cliente.ativo.values[0]
+            )
             # Exibe os atributos do novo cliente
             print(novo_cliente.to_string())
             # Retorna o objeto novo_cliente para utilização posterior, caso necessário
@@ -40,7 +52,7 @@ class Controller_Cliente:
         oracle.connect()
 
         # Solicita ao usuário o código do cliente a ser alterado
-        cpf = int(input("CPF do cliente que deseja alterar o nome: "))
+        cpf = str(input("CPF do cliente que deseja alterar o nome: "))
 
         # Verifica se o cliente existe na base de dados
         if not self.verifica_existencia_cliente(oracle, cpf):
@@ -48,12 +60,32 @@ class Controller_Cliente:
             novo_nome = input("Nome (Novo): ")
             # Solicita a nova descrição do cliente
             novo_telefone = input("Telefone (Novo): ")
-            # Atualiza o nome do cliente existente
-            oracle.write(f"update clientes set nome = '{novo_nome}' where cpf = {cpf}")
+            ativo = input("Cliente ativo? [S/N]: ").strip().upper()
+            while ativo not in ("S", "N"):
+                ativo = input("Opção inválida. Informe S ou N: ").strip().upper()
+            # Atualiza os dados do cliente existente
+            oracle.write(
+                "update clientes set nome = :nome, telefone = :telefone, "
+                "ativo = :ativo where cpf = :cpf",
+                {
+                    "nome": novo_nome,
+                    "telefone": novo_telefone,
+                    "ativo": ativo,
+                    "cpf": cpf
+                }
+            )
             # Recupera os dados do novo cliente criado transformando em um DataFrame
-            df_cliente = oracle.sqlToDataFrame(f"select cpf, nome, telefone from clientes where cpf = {cpf}")
+            df_cliente = oracle.sqlToDataFrame(
+                "select cpf, nome, telefone, ativo from clientes where cpf = :cpf",
+                {"cpf": cpf}
+            )
             # Cria um novo objeto cliente
-            cliente_atualizado = Cliente(df_cliente.cpf.values[0], df_cliente.nome.values[0], df_cliente.telefone.values[0])
+            cliente_atualizado = Cliente(
+                df_cliente.cpf.values[0],
+                df_cliente.nome.values[0],
+                df_cliente.telefone.values[0],
+                df_cliente.ativo.values[0]
+            )
             # Exibe os atributos do novo cliente
             print(cliente_atualizado.to_string())
             # Retorna o objeto cliente_atualizado para utilização posterior, caso necessário
@@ -67,24 +99,35 @@ class Controller_Cliente:
         oracle = OracleQueries(can_write=True)
         oracle.connect()
 
-        # Solicita ao usuário o CPF do Cliente a ser alterado
-        cpf = int(input("CPF do Cliente que irá excluir: "))        
+        # Solicita ao usuário o CPF do Cliente a ser inativado
+        cpf = str(input("CPF do cliente que deseja inativar: "))
 
         # Verifica se o cliente existe na base de dados
         if not self.verifica_existencia_cliente(oracle, cpf):            
             # Recupera os dados do novo cliente criado transformando em um DataFrame
-            df_cliente = oracle.sqlToDataFrame(f"select cpf, nome, telefone from clientes where cpf = {cpf}")
-            # Revome o cliente da tabela
-            oracle.write(f"delete from clientes where cpf = {cpf}")            
-            # Cria um novo objeto Cliente para informar que foi removido
-            cliente_excluido = Cliente(df_cliente.cpf.values[0], df_cliente.nome.values[0])
-            # Exibe os atributos do cliente excluído
-            print("Cliente Removido com Sucesso!")
-            print(cliente_excluido.to_string())
+            df_cliente = oracle.sqlToDataFrame(
+                "select cpf, nome, telefone, ativo from clientes where cpf = :cpf",
+                {"cpf": cpf}
+            )
+            oracle.write(
+                "update clientes set ativo = 'N' where cpf = :cpf",
+                {"cpf": cpf}
+            )
+            cliente_inativado = Cliente(
+                df_cliente.cpf.values[0],
+                df_cliente.nome.values[0],
+                df_cliente.telefone.values[0],
+                "N"
+            )
+            print("Cliente inativado com sucesso.")
+            print(cliente_inativado.to_string())
         else:
             print(f"O CPF {cpf} não existe.")
 
     def verifica_existencia_cliente(self, oracle:OracleQueries, cpf:str=None) -> bool:
         # Recupera os dados do novo cliente criado transformando em um DataFrame
-        df_cliente = oracle.sqlToDataFrame(f"select cpf, nome from clientes where cpf = {cpf}")
+        df_cliente = oracle.sqlToDataFrame(
+            "select cpf, nome, telefone, ativo from clientes where cpf = :cpf",
+            {"cpf": cpf}
+        )
         return df_cliente.empty

@@ -4,6 +4,7 @@ select l.codigo_locacao
      , ca.modelo
      , l.data_inicio_locacao
      , l.data_previsao_locacao
+     , l.data_fim_locacao
      , l.valor_total
   from locacao l
   inner join clientes c

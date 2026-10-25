@@ -1,21 +1,25 @@
+from pathlib import Path
+
 from conexion.oracle_queries import OracleQueries
 
 class Relatorio:
     def __init__(self):
+        sql_dir = Path(__file__).resolve().parent.parent / "sql"
+
         # Abre o arquivo com a consulta e associa a um atributo da classe
-        with open("sql/relatorio_carros.sql") as f:
+        with (sql_dir / "relatorio_carros.sql").open(encoding="utf-8") as f:
             self.query_relatorio_carros = f.read()
 
         # Abre o arquivo com a consulta e associa a um atributo da classe
-        with open("sql/relatorio_clientes.sql") as f:
+        with (sql_dir / "relatorio_clientes.sql").open(encoding="utf-8") as f:
             self.query_relatorio_clientes = f.read()
 
         # Abre o arquivo com a consulta e associa a um atributo da classe
-        with open("sql/relatorio_locacao_por_carro.sql") as f:
+        with (sql_dir / "relatorio_locacao_por_carro.sql").open(encoding="utf-8") as f:
             self.query_relatorio_locacao_por_carro = f.read()
 
         # Abre o arquivo com a consulta e associa a um atributo da classe
-        with open("sql/relatorio_geral.sql") as f:
+        with (sql_dir / "relatorio_geral.sql").open(encoding="utf-8") as f:
             self.query_relatorio_geral = f.read()
 
 

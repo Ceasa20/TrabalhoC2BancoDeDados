@@ -33,9 +33,7 @@ class Controller_Locacao:
             return None
 
         # Perguntar ao usuario até quando ele deseja alugar o carro, e calcular a quantidade de dias
-        data_previsao_locacao = input("Digite a data de até quando deseja alugar o carro (YYYY-MM-DD): ")
-        #alterar aqui para nao deixar usuario fazer merda \/ <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        data_previsao_locacao = date.fromisoformat(data_previsao_locacao)
+        data_previsao_locacao = self.solicitar_data_previsao()
         dias_locacao = (data_previsao_locacao - date.today()).days
 
         data_hoje = date.today()
@@ -62,7 +60,11 @@ class Controller_Locacao:
         # Persiste (confirma) as alterações
         oracle.conn.commit()
         # Recupera os dados da nova locação criada transformando em um DataFrame
-        df_locacao = oracle.sqlToDataFrame(f"select codigo_locacao, data_inicio_locacao, dias_locacao, valor_total from locacao where codigo_locacao = {codigo_locacao}")
+        df_locacao = oracle.sqlToDataFrame(
+            "select codigo_locacao, data_inicio_locacao, dias_locacao, valor_total "
+            "from locacao where codigo_locacao = :codigo_locacao",
+            {"codigo_locacao": codigo_locacao}
+        )
         # Cria um novo objeto Locacao
         nova_locacao = Locacao(
             codigo_locacao=df_locacao.codigo_locacao.values[0],
@@ -86,10 +88,21 @@ class Controller_Locacao:
 
         # Solicita ao usuário o código da locação a ser alterada
         self.listar_locacoes(oracle)
-        codigo_locacao = int(input("Código da Locação que irá alterar: "))        
+        codigo_locacao = self.solicitar_codigo_locacao(
+            "Código da Locação que irá alterar: "
+        )
 
         # Verifica se a locação existe na base de dados
         if not self.verifica_existencia_locacao(oracle, codigo_locacao):
+            df_finalizacao = oracle.sqlToDataFrame(
+                "select data_fim_locacao from locacao "
+                "where codigo_locacao = :codigo_locacao "
+                "and data_fim_locacao is not null",
+                {"codigo_locacao": codigo_locacao}
+            )
+            if not df_finalizacao.empty:
+                print(f"A locação {codigo_locacao} já foi finalizada e não pode ser alterada.")
+                return None
 
             self.listar_carros(oracle)
             placa = input("Digite a placa do novo carro: ")
@@ -98,8 +111,15 @@ class Controller_Locacao:
                 return None
 
             oracle.write(
-                f"update locacao set placa = '{carro.get_placa()}' "
-                f"where codigo_locacao = {codigo_locacao}"
+                "update locacao "
+                "set placa = :placa, "
+                "valor_total = dias_locacao * :valor_diaria "
+                "where codigo_locacao = :codigo_locacao",
+                {
+                    "placa": carro.get_placa(),
+                    "valor_diaria": carro.get_valor_diaria(),
+                    "codigo_locacao": codigo_locacao
+                }
             )
             print(f"Carro da locação {codigo_locacao} atualizado para {carro.get_modelo()}.")
             return None
@@ -107,74 +127,99 @@ class Controller_Locacao:
             print(f"O código {codigo_locacao} não existe.")
             return None
 
-    def excluir_locacao(self):
+    def finalizar_locacao(self):
         # Cria uma nova conexão com o banco que permite alteração
         oracle = OracleQueries(can_write=True)
         oracle.connect()
 
-        # Solicita ao usuário o código da locação a ser excluída
-        codigo_locacao = int(input("Código da Locação que irá excluir: "))        
+        self.listar_locacoes(oracle)
+        codigo_locacao = self.solicitar_codigo_locacao(
+            "Código da Locação que deseja finalizar: "
+        )
 
-        # Verifica se a locação existe na base de dados
-        if not self.verifica_existencia_locacao(oracle, codigo_locacao):            
-            # Recupera os dados da nova locação criada transformando em um DataFrame
-            df_locacao = oracle.sqlToDataFrame(f"select codigo_locacao, data_inicio_locacao, valor_total, cpf, placa from locacao where codigo_locacao = {codigo_locacao}")
-            cliente = self.valida_cliente(oracle, df_locacao.cpf.values[0])
-            carro = self.valida_carro(oracle, df_locacao.placa.values[0])
-
-            opcao_excluir = input(f"Tem certeza que deseja excluir a locação {codigo_locacao} [S ou N]: ")
-            if opcao_excluir.lower() == "s":
-                print("Atenção, caso a locação possua carros, também serão excluídos!")
-                opcao_excluir = input(f"Tem certeza que deseja excluir a locação {codigo_locacao} [S ou N]: ")
-                if opcao_excluir.lower() == "s":
-                    # Revome o carro da tabela - comentando pois não é necessário remover o carro da tabela, apenas a locação
-                    # oracle.write(f"delete from carros where placa = {df_locacao.placa.values[0]}")
-                    # print("Carros da locação removidos com sucesso!")
-                    oracle.write(f"delete from locacao where codigo_locacao = {codigo_locacao}")
-                    # Cria um novo objeto Locacao para informar que foi removido
-                    locacao_excluida = Locacao(
-                        codigo_locacao=df_locacao.codigo_locacao.values[0],
-                        cliente=cliente,
-                        data_inicio=df_locacao.data_inicio_locacao.values[0],
-                        carros=carro,
-                        valor_total=df_locacao.valor_total.values[0]
-                    )
-                    # Exibe os atributos da locação excluída
-                    print("Locação Removida com Sucesso!")
-                    print(locacao_excluida.to_string())
-        else:
+        if self.verifica_existencia_locacao(oracle, codigo_locacao):
             print(f"O código {codigo_locacao} não existe.")
+            return
+
+        df_finalizacao = oracle.sqlToDataFrame(
+            "select data_fim_locacao from locacao "
+            "where codigo_locacao = :codigo_locacao "
+            "and data_fim_locacao is not null",
+            {"codigo_locacao": codigo_locacao}
+        )
+        if not df_finalizacao.empty:
+            print(f"A locação {codigo_locacao} já foi finalizada.")
+            return
+
+        confirmar = input(
+            f"Confirma a finalização da locação {codigo_locacao}? [S/N]: "
+        ).strip().upper()
+        if confirmar != "S":
+            print("Finalização cancelada.")
+            return
+
+        oracle.write(
+            "update locacao set data_fim_locacao = :data_fim "
+            "where codigo_locacao = :codigo_locacao "
+            "and data_fim_locacao is null",
+            {
+                "data_fim": date.today(),
+                "codigo_locacao": codigo_locacao
+            }
+        )
+        print(f"Locação {codigo_locacao} finalizada em {date.today():%d/%m/%Y}.")
 
     def verifica_existencia_locacao(self, oracle:OracleQueries, codigo:int=None) -> bool:
         # Recupera os dados da nova locação criada transformando em um DataFrame
-        df_locacao = oracle.sqlToDataFrame(f"select codigo_locacao, data_inicio_locacao from locacao where codigo_locacao = {codigo}")
+        df_locacao = oracle.sqlToDataFrame(
+            "select codigo_locacao, data_inicio_locacao "
+            "from locacao where codigo_locacao = :codigo",
+            {"codigo": codigo}
+        )
         return df_locacao.empty
+
+    def solicitar_codigo_locacao(self, prompt: str) -> int:
+        while True:
+            entrada = input(prompt).strip()
+            try:
+                codigo_locacao = int(entrada)
+            except ValueError:
+                print("Código inválido. Informe um número inteiro.")
+                continue
+
+            if codigo_locacao <= 0:
+                print("O código da locação deve ser maior que zero.")
+                continue
+
+            return codigo_locacao
 
     def listar_clientes(self, oracle:OracleQueries, need_connect:bool=False):
         query = """
                 select c.cpf
                     , c.nome 
                 from clientes c
+                where c.ativo = 'S'
                 order by c.nome
                 """
         if need_connect:
             oracle.connect()
         print(oracle.sqlToDataFrame(query))
 
-def listar_locacoes(self, oracle: OracleQueries, need_connect: bool = False):
-    query = """
-            select l.codigo_locacao
-                , c.nome as cliente_nome
-                , ca.placa
-                , ca.modelo as carro_modelo
-            from locacao l
-            inner join clientes c on l.cpf = c.cpf
-            inner join carros ca on l.placa = ca.placa
-            order by l.codigo_locacao
-            """
-    if need_connect:
-        oracle.connect()
-    print(oracle.sqlToDataFrame(query))
+    def listar_locacoes(self, oracle: OracleQueries, need_connect: bool = False):
+        query = """
+                select l.codigo_locacao
+                    , c.nome as cliente_nome
+                    , ca.placa
+                    , ca.modelo as carro_modelo
+                    , l.data_fim_locacao
+                from locacao l
+                inner join clientes c on l.cpf = c.cpf
+                inner join carros ca on l.placa = ca.placa
+                order by l.codigo_locacao
+                """
+        if need_connect:
+            oracle.connect()
+        print(oracle.sqlToDataFrame(query))
 
 
     def listar_carros(self, oracle:OracleQueries, need_connect:bool=False):
@@ -184,6 +229,7 @@ def listar_locacoes(self, oracle: OracleQueries, need_connect: bool = False):
                     , c.marca
                     , c.valor_diaria
                 from carros c
+                where c.ativo = 'S'
                 order by c.modelo
                 """
         if need_connect:
@@ -197,12 +243,28 @@ def listar_locacoes(self, oracle: OracleQueries, need_connect: bool = False):
         else:
             oracle.connect()
             # Recupera os dados do novo cliente criado transformando em um DataFrame
-            df_cliente = oracle.sqlToDataFrame(f"select cpf, nome from clientes where cpf = {cpf}")
+            df_cliente = oracle.sqlToDataFrame(
+                "select cpf, nome, ativo from clientes "
+                "where cpf = :cpf",
+                {"cpf": cpf}
+            )
+            if df_cliente.ativo.values[0].strip().upper() != "S":
+                print(f"O cliente com CPF {cpf} está inativo e não pode alugar.")
+                return None
             # Cria um novo objeto cliente
-            cliente = Cliente(df_cliente.cpf.values[0], df_cliente.nome.values[0])
+            cliente = Cliente(
+                df_cliente.cpf.values[0],
+                df_cliente.nome.values[0],
+                ativo=df_cliente.ativo.values[0]
+            )
             return cliente
 
-    def valida_carro(self, oracle:OracleQueries, placa:str=None) -> Carros:
+    def valida_carro(
+        self,
+        oracle: OracleQueries,
+        placa: str = None,
+        exigir_ativo: bool = True
+    ) -> Carros:
         if self.ctrl_carros.verifica_existencia_carro(oracle, placa):
             print(f"A placa {placa} informada não existe na base.")
             return None
@@ -210,16 +272,38 @@ def listar_locacoes(self, oracle: OracleQueries, need_connect: bool = False):
             oracle.connect()
             # Recupera os dados do novo carro criado transformando em um DataFrame
             df_carro = oracle.sqlToDataFrame(
-                f"select placa, marca, modelo, valor_diaria "
-                f"from carros where placa = '{placa}'"
+                "select placa, marca, modelo, valor_diaria, ativo "
+                "from carros where placa = :placa",
+                {"placa": placa}
             )
             # Cria um novo objeto carro
             carro = Carros(
                 df_carro.placa.values[0],
                 df_carro.marca.values[0],
                 df_carro.modelo.values[0],
-                df_carro.valor_diaria.values[0]
+                df_carro.valor_diaria.values[0],
+                df_carro.ativo.values[0]
             )
+            if exigir_ativo and df_carro.ativo.values[0].strip().upper() != "S":
+                print(f"O carro com placa {placa} está inativo e não pode ser alugado.")
+                return None
             return carro
 
+    def solicitar_data_previsao(self) -> date:
+        while True:
+            entrada = input(
+                "Digite a data prevista para devolução (YYYY-MM-DD): "
+            ).strip()
+
+            try:
+                data_previsao = date.fromisoformat(entrada)
+            except ValueError:
+                print("Data inválida. Use o formato YYYY-MM-DD.")
+                continue
+
+            if data_previsao <= date.today():
+                print("A data prevista deve ser posterior à data de hoje.")
+                continue
+
+            return data_previsao
         

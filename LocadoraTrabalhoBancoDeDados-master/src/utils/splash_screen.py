@@ -5,9 +5,9 @@ class SplashScreen:
 
     def __init__(self):
         # Consultas de contagem de registros - inicio
-        self.qry_total_produtos = config.QUERY_COUNT.format(tabela="carros")
+        self.qry_total_carros = config.QUERY_COUNT.format(tabela="carros")
         self.qry_total_clientes = config.QUERY_COUNT.format(tabela="clientes")
-        self.qry_total_fornecedores = config.QUERY_COUNT.format(tabela="locacao")
+        self.qry_total_locacao = config.QUERY_COUNT.format(tabela="locacao")
         # Consultas de contagem de registros - fim
 
         # Nome(s) do(s) criador(es)
@@ -34,12 +34,12 @@ class SplashScreen:
         # Retorna o total de registros computado pela query
         return oracle.sqlToDataFrame(self.qry_total_clientes)["total_clientes"].values[0]
 
-    def get_total_locacoes(self):
+    def get_total_locacao(self):
         # Cria uma nova conexão com o banco que permite alteração
         oracle = OracleQueries()
         oracle.connect()
         # Retorna o total de registros computado pela query
-        return oracle.sqlToDataFrame(self.qry_total_locacoes)["total_locacoes"].values[0]
+        return oracle.sqlToDataFrame(self.qry_total_locacao)["total_locacao"].values[0]
 
 
     def get_updated_screen(self):
@@ -50,7 +50,7 @@ class SplashScreen:
         #  TOTAL DE REGISTROS:                                    
         #      1 - CARROS:         {str(self.get_total_carros()).rjust(5)}
         #      2 - CLIENTES:         {str(self.get_total_clientes()).rjust(5)}
-        #      3 - LOCACOES:     {str(self.get_total_locacoes()).rjust(5)}
+        #      3 - LOCACOES:     {str(self.get_total_locacao()).rjust(5)}
         #      
         #
         #  CRIADO POR ALUNOS: {self.created_by}
