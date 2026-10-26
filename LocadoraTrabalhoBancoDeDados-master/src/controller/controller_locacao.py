@@ -27,7 +27,7 @@ class Controller_Locacao:
 
         # Lista os carros existentes para inserir na locacao
         self.listar_carros(oracle, need_connect=True)
-        placa = str(input("Digite a placa do Carro: "))
+        placa = self.solicitar_placa("Digite a placa do Carro: ")
         carro = self.valida_carro(oracle, placa)
         if carro == None:
             return None
@@ -105,7 +105,7 @@ class Controller_Locacao:
                 return None
 
             self.listar_carros(oracle)
-            placa = input("Digite a placa do novo carro: ")
+            placa = self.solicitar_placa("Digite a placa do novo carro: ")
             carro = self.valida_carro(oracle, placa)
             if carro is None:
                 return None
@@ -192,6 +192,15 @@ class Controller_Locacao:
                 continue
 
             return codigo_locacao
+
+    def solicitar_placa(self, mensagem: str) -> str:
+        while True:
+            placa = input(mensagem).strip().upper()
+
+            if placa:
+                return placa
+
+            print("A placa não pode ser vazia.")
 
     def listar_clientes(self, oracle:OracleQueries, need_connect:bool=False):
         query = """
@@ -306,4 +315,5 @@ class Controller_Locacao:
                 continue
 
             return data_previsao
+
         
