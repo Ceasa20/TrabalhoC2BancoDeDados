@@ -1,3 +1,4 @@
+
 from conexion.oracle_queries import OracleQueries
 from utils import config
 
@@ -43,20 +44,35 @@ class SplashScreen:
 
 
     def get_updated_screen(self):
-        return f"""
-        ########################################################
-        #                   SISTEMA DE VENDAS                     
-        #                                                         
-        #  TOTAL DE REGISTROS:                                    
-        #      1 - CARROS:         {str(self.get_total_carros()).rjust(5)}
-        #      2 - CLIENTES:         {str(self.get_total_clientes()).rjust(5)}
-        #      3 - LOCACOES:     {str(self.get_total_locacao()).rjust(5)}
-        #      
-        #
-        #  CRIADO POR ALUNOS: {self.created_by}
-        #
-        #
-        #  DISCIPLINA: {self.disciplina}
-        #              {self.semestre}
-        ########################################################
-        """
+        # Monta a tela inicial com os totais de registros do banco
+        largura = 68
+        borda = "+" + "=" * (largura - 2) + "+"
+        separador = "+" + "-" * (largura - 2) + "+"
+
+        def linha(texto=""):
+            return "| " + str(texto).center(largura - 4)[:largura - 4] + " |"
+
+        linhas = [
+            borda,
+            linha("SISTEMA DE LOCAÇÃO DE VEÍCULOS"),
+            borda,
+            linha("RESUMO DE REGISTROS"),
+            separador,
+            linha(f"1 - CARROS: {self.get_total_carros()}"),
+            linha(f"2 - CLIENTES: {self.get_total_clientes()}"),
+            linha(f"3 - LOCAÇÕES: {self.get_total_locacao()}"),
+            separador,
+            linha("CRIADO POR ALUNOS"),
+        ]
+
+        for criador in self.created_by.splitlines():
+            linhas.append(linha(criador.strip()))
+
+        linhas.extend([
+            separador,
+            linha(f"DISCIPLINA: {self.disciplina}"),
+            linha(f"SEMESTRE: {self.semestre}"),
+            borda,
+        ])
+
+        return "\n".join(linhas)
