@@ -4,6 +4,15 @@ from conexion.oracle_queries import OracleQueries
 class Controller_Cliente:
     def __init__(self):
         pass
+
+    def solicitar_cpf(self, mensagem: str) -> str:
+        while True:
+            cpf = input(mensagem).strip()
+
+            if cpf:
+                return cpf
+
+            print("O CPF não pode ser vazio.")
         
     def inserir_cliente(self) -> Cliente:
         ''' Ref.: https://cx-oracle.readthedocs.io/en/latest/user_guide/plsql_execution.html#anonymous-pl-sql-blocks'''
@@ -13,7 +22,7 @@ class Controller_Cliente:
         oracle.connect()
 
         # Solicita ao usuario o novo CPF
-        cpf = input("CPF (Novo): ")
+        cpf = self.solicitar_cpf("CPF (Novo): ")
 
         if self.verifica_existencia_cliente(oracle, cpf):
             # Solicita ao usuario o novo nome
@@ -52,7 +61,7 @@ class Controller_Cliente:
         oracle.connect()
 
         # Solicita ao usuário o código do cliente a ser alterado
-        cpf = str(input("CPF do cliente que deseja alterar o nome: "))
+        cpf = self.solicitar_cpf("CPF do cliente que deseja alterar o nome: ")
 
         # Verifica se o cliente existe na base de dados
         if not self.verifica_existencia_cliente(oracle, cpf):
@@ -100,7 +109,7 @@ class Controller_Cliente:
         oracle.connect()
 
         # Solicita ao usuário o CPF do Cliente a ser inativado
-        cpf = str(input("CPF do cliente que deseja inativar: "))
+        cpf = self.solicitar_cpf("CPF do cliente que deseja inativar: ")
 
         # Verifica se o cliente existe na base de dados
         if not self.verifica_existencia_cliente(oracle, cpf):            
