@@ -1,3 +1,4 @@
+
 from pathlib import Path
 
 from conexion.oracle_queries import OracleQueries
@@ -28,7 +29,11 @@ class Relatorio:
         oracle = OracleQueries()
         oracle.connect()
         # Recupera os dados transformando em um DataFrame
-        print(oracle.sqlToDataFrame(self.query_relatorio_carros))
+        print("\n" + "=" * 68)
+        print("RELATÓRIO DE CARROS".center(68))
+        print("=" * 68)
+        print(oracle.sqlToDataFrame(self.query_relatorio_carros).to_string(index=False))
+        print("=" * 68)
         input("Pressione Enter para Sair do Relatório de Carros")
 
     def get_relatorio_locacao_por_carro(self):
@@ -36,7 +41,11 @@ class Relatorio:
         oracle = OracleQueries()
         oracle.connect()
         # Recupera os dados transformando em um DataFrame
-        print(oracle.sqlToDataFrame(self.query_relatorio_locacao_por_carro))
+        print("\n" + "=" * 68)
+        print("RELATÓRIO DE LOCAÇÕES POR CARRO".center(68))
+        print("=" * 68)
+        print(oracle.sqlToDataFrame(self.query_relatorio_locacao_por_carro).to_string(index=False))
+        print("=" * 68)
         input("Pressione Enter para Sair do Relatório de Locações por Carro")
 
     def get_relatorio_clientes(self):
@@ -44,7 +53,11 @@ class Relatorio:
         oracle = OracleQueries()
         oracle.connect()
         # Recupera os dados transformando em um DataFrame
-        print(oracle.sqlToDataFrame(self.query_relatorio_clientes))
+        print("\n" + "=" * 68)
+        print("RELATÓRIO DE CLIENTES".center(68))
+        print("=" * 68)
+        print(oracle.sqlToDataFrame(self.query_relatorio_clientes).to_string(index=False))
+        print("=" * 68)
         input("Pressione Enter para Sair do Relatório de Clientes")
 
     def get_relatorio_geral(self):
@@ -52,5 +65,9 @@ class Relatorio:
         oracle = OracleQueries()
         oracle.connect()
         # Recupera os dados transformando em um DataFrame
-        print(oracle.sqlToDataFrame(self.query_relatorio_geral))
+        print("\n" + "=" * 68)
+        print("RELATÓRIO GERAL".center(68))
+        print("=" * 68)
+        print(oracle.sqlToDataFrame(self.query_relatorio_geral).to_string(index=False))
+        print("=" * 68)
         input("Pressione Enter para Sair do Relatório Geral")
