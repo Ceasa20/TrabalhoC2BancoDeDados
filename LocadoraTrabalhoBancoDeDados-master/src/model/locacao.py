@@ -71,5 +71,10 @@ class Locacao:
     def get_valor_total(self) -> float:
         return self.valor_total
 
+    def calcular_valor_total(self) -> float:
+        valor = self.get_carros().get_valor_diaria() * self.get_dias()
+        self.set_valor_total(valor)
+        return valor
+
     def to_string(self) -> str:
         return f"Locação: {self.get_codigo_locacao()} | Cliente: {self.get_cliente().get_nome()} | Data Início: {self.get_data_inicio()} | Data Previsão: {self.get_data_previsao()} | Data Fim: {self.get_data_fim()} | Dias: {self.get_dias()} | Carro: {self.get_carros().get_modelo()} | Valor Total: {self.get_valor_total()}"
