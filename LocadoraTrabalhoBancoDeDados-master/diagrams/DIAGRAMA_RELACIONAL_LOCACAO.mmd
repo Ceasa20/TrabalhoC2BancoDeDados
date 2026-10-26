@@ -1,0 +1,31 @@
+%% Schema Oracle LABDATABASE conforme o novo DDL informado
+%% Sequence: LOCACAO_CODIGO_LOCACAO_SEQ (criada separadamente)
+erDiagram
+    CLIENTES ||--o{ LOCACAO : possui
+    CARROS ||--o{ LOCACAO : utilizada_em
+
+    CLIENTES {
+        VARCHAR2(11) CPF PK "NOT NULL"
+        VARCHAR2(255) NOME "NOT NULL"
+        VARCHAR2(20) TELEFONE "NULL permitido"
+        CHAR(1) ATIVO "NOT NULL, DEFAULT S, CHECK S ou N"
+    }
+
+    CARROS {
+        VARCHAR2(7) PLACA PK "NOT NULL"
+        VARCHAR2(100) MODELO "NOT NULL"
+        VARCHAR2(100) MARCA "NOT NULL"
+        NUMBER(10,2) VALOR_DIARIA "NOT NULL"
+        CHAR(1) ATIVO "NOT NULL, DEFAULT S, CHECK S ou N"
+    }
+
+    LOCACAO {
+        NUMBER CODIGO_LOCACAO PK "NOT NULL"
+        DATE DATA_INICIO_LOCACAO "NOT NULL"
+        DATE DATA_PREVISAO_LOCACAO "NOT NULL"
+        DATE DATA_FIM_LOCACAO "NULL permitido"
+        NUMBER(5) DIAS_LOCACAO "NOT NULL"
+        NUMBER(10,2) VALOR_TOTAL "NOT NULL"
+        VARCHAR2(11) CPF FK "NOT NULL"
+        VARCHAR2(7) PLACA FK "NOT NULL"
+    }
