@@ -5,123 +5,106 @@ from controller.controller_cliente import Controller_Cliente
 from controller.controller_carro import Controller_Carro
 from controller.controller_locacao import Controller_Locacao
 
-# Inicialização da tela inicial, relatórios e das controladoras
-tela_inicial = SplashScreen()
+# Inicialização dos componentes do sistema
 relatorio = Relatorio()
 ctrl_cliente = Controller_Cliente()
 ctrl_carro = Controller_Carro()
 ctrl_locacao = Controller_Locacao()
 
+
 def reports(opcao_relatorio: str = "0"):
-    if opcao_relatorio == "1":
-        relatorio.get_relatorio_carros()
-    elif opcao_relatorio == "2":
-        relatorio.get_relatorio_locacao_por_carro()
-    elif opcao_relatorio == "3":
-        relatorio.get_relatorio_clientes()
-    elif opcao_relatorio == "4":
-        relatorio.get_relatorio_geral()
+    acoes = {
+        "1": relatorio.get_relatorio_carros,
+        "2": relatorio.get_relatorio_locacao_por_carro,
+        "3": relatorio.get_relatorio_clientes,
+        "4": relatorio.get_relatorio_geral,
+    }
+    acao = acoes.get(opcao_relatorio)
+    if acao:
+        acao()
+
 
 def inserir(opcao_inserir: str = "0"):
-    if opcao_inserir == "1":
-        ctrl_cliente.inserir_cliente()
-    elif opcao_inserir == "2":
-        ctrl_carro.inserir_carro()
-    elif opcao_inserir == "3":
-        ctrl_locacao.inserir_locacao()
+    acoes = {
+        "1": ctrl_cliente.inserir_cliente,
+        "2": ctrl_carro.inserir_carro,
+        "3": ctrl_locacao.inserir_locacao,
+    }
+    acao = acoes.get(opcao_inserir)
+    if acao:
+        acao()
+
 
 def atualizar(opcao_atualizar: str = "0"):
-    if opcao_atualizar == "1":
-        relatorio.get_relatorio_clientes()
-        ctrl_cliente.atualizar_cliente()
-    elif opcao_atualizar == "2":
-        relatorio.get_relatorio_carros()
-        ctrl_carro.atualizar_carro()
-    elif opcao_atualizar == "3":
-        relatorio.get_relatorio_locacao_por_carro()
-        ctrl_locacao.atualizar_locacao()
+    acoes = {
+        "1": (relatorio.get_relatorio_clientes, ctrl_cliente.atualizar_cliente),
+        "2": (relatorio.get_relatorio_carros, ctrl_carro.atualizar_carro),
+        "3": (relatorio.get_relatorio_locacao_por_carro, ctrl_locacao.atualizar_locacao),
+    }
+    for acao in acoes.get(opcao_atualizar, ()):
+        acao()
+
 
 def inativar_ou_finalizar(opcao: str = "0"):
-    if opcao == "1":
-        relatorio.get_relatorio_clientes()
-        ctrl_cliente.excluir_cliente()
-    elif opcao == "2":
-        relatorio.get_relatorio_carros()
-        ctrl_carro.excluir_carro()
-    elif opcao == "3":
-        relatorio.get_relatorio_locacao_por_carro()
-        ctrl_locacao.finalizar_locacao()
+    acoes = {
+        "1": (relatorio.get_relatorio_clientes, ctrl_cliente.excluir_cliente),
+        "2": (relatorio.get_relatorio_carros, ctrl_carro.excluir_carro),
+        "3": (relatorio.get_relatorio_locacao_por_carro, ctrl_locacao.finalizar_locacao),
+    }
+    for acao in acoes.get(opcao, ()):
+        acao()
+
+
+def escolher_entidade(acao: str):
+    """Menu comum para operações de cadastro; 0 sempre retorna ao menu anterior."""
+    while True:
+        print(config.MENU_ENTIDADES)
+        opcao = config.solicitar_opcao("Selecione [0-3]: ", ("0", "1", "2", "3"))
+        if opcao == "0":
+            return
+        config.clear_console()
+        if acao == "inserir":
+            inserir(opcao)
+        elif acao == "atualizar":
+            atualizar(opcao)
+        elif acao == "inativar":
+            inativar_ou_finalizar(opcao)
+        config.pausar()
+        config.clear_console()
+
 
 def run():
-    print(tela_inicial.get_updated_screen())
-    config.clear_console()
-
     while True:
+        # A tela de resumo depende do banco Oracle; se a conexão falhar, o menu ainda deve abrir.
+        try:
+            print(SplashScreen().get_updated_screen())
+        except Exception as erro:
+            print(f"{config.YELLOW}Resumo do banco indisponível: {erro}{config.RESET}")
+            print("O menu será exibido mesmo assim. Verifique a conexão Oracle.\n")
         print(config.MENU_PRINCIPAL)
-        opcao = config.solicitar_opcao(
-            "Escolha uma opção [1-5]: ",
-            ("1", "2", "3", "4", "5")
-        )
-        config.clear_console(1)
-        
-        if opcao == '1': # Relatórios
+        opcao = config.solicitar_opcao("Escolha uma opção [0-4]: ", ("0", "1", "2", "3", "4"))
+        config.clear_console()
+
+        if opcao == "1":
             while True:
                 print(config.MENU_RELATORIOS)
-                opcao_relatorio = config.solicitar_opcao(
-                    "Escolha uma opção [1-4, 0 para voltar]: ",
-                    ("0", "1", "2", "3", "4")
-                )
-                config.clear_console(1)
-                if opcao_relatorio == "0":
+                escolha = config.solicitar_opcao("Selecione um relatório [0-4]: ", ("0", "1", "2", "3", "4"))
+                if escolha == "0":
                     break
-                reports(opcao_relatorio)
-                config.clear_console(1)
+                config.clear_console()
+                reports(escolha)
+                config.pausar()
+                config.clear_console()
+        elif opcao == "2":
+            escolher_entidade("inserir")
+        elif opcao == "3":
+            escolher_entidade("atualizar")
+        elif opcao == "4":
+            escolher_entidade("inativar")
+        elif opcao == "0":
+            print("Obrigado por utilizar o Sistema de Locação de Veículos.")
+            break
 
-        elif opcao == '2': # Inserir Novos Registros
-            print(config.MENU_ENTIDADES)
-            opcao_inserir = config.solicitar_opcao(
-                "Escolha uma opção [1-3]: ",
-                ("1", "2", "3")
-            )
-            config.clear_console(1)
-
-            inserir(opcao_inserir=opcao_inserir)
-
-            config.clear_console()
-            print(tela_inicial.get_updated_screen())
-            config.clear_console()
-
-        elif opcao == '3': # Atualizar Registros
-            print(config.MENU_ENTIDADES)
-            opcao_atualizar = config.solicitar_opcao(
-                "Escolha uma opção [1-3]: ",
-                ("1", "2", "3")
-            )
-            config.clear_console(1)
-
-            atualizar(opcao_atualizar=opcao_atualizar)
-
-            config.clear_console()
-
-        elif opcao == '4': # Inativar cadastros ou finalizar locação
-            print(config.MENU_ENTIDADES)
-            opcao_status = config.solicitar_opcao(
-                "Escolha uma opção [1-3]: ",
-                ("1", "2", "3")
-            )
-            config.clear_console(1)
-
-            inativar_ou_finalizar(opcao=opcao_status)
-
-            config.clear_console()
-            print(tela_inicial.get_updated_screen())
-            config.clear_console()
-
-        elif opcao == '5': # Sair
-            print(tela_inicial.get_updated_screen())
-            config.clear_console()
-            print("Obrigado por utilizar o nosso sistema.")
-            exit(0)
 
 if __name__ == "__main__":
     run()
