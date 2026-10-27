@@ -6,6 +6,7 @@ from controller.controller_cliente import Controller_Cliente
 from model.locacao import Locacao
 from conexion.oracle_queries import OracleQueries
 from datetime import date
+from utils import config
 
 class Controller_Locacao:
     def __init__(self):
@@ -168,6 +169,58 @@ class Controller_Locacao:
             }
         )
         print(f"Locação {codigo_locacao} finalizada em {date.today():%d/%m/%Y}.")
+
+    def excluir_locacao(self):
+        oracle = OracleQueries(can_write=True)
+        oracle.connect()
+
+        locacoes = oracle.sqlToDataFrame(
+            """
+            select l.codigo_locacao, c.nome as cliente_nome,
+                   ca.placa, ca.modelo as carro_modelo, l.data_inicio_locacao
+              from locacao l
+              inner join clientes c on l.cpf = c.cpf
+              inner join carros ca on l.placa = ca.placa
+             order by l.codigo_locacao
+            """
+        )
+        if locacoes.empty:
+            print("Não há locações cadastradas para excluir.")
+            return
+
+        print("\nLocações:")
+        for indice, (_, locacao) in enumerate(locacoes.iterrows(), start=1):
+            print(
+                f"[{indice}] Código: {locacao['codigo_locacao']} | "
+                f"Cliente: {locacao['cliente_nome']} | "
+                f"Veículo: {locacao['placa']} {locacao['carro_modelo']} | "
+                f"Início: {locacao['data_inicio_locacao']}"
+            )
+
+        opcoes = ("0",) + tuple(
+            str(indice) for indice in range(1, len(locacoes) + 1)
+        )
+        opcao = config.solicitar_opcao(
+            "Selecione a locação que deseja excluir (0 para cancelar): ",
+            opcoes
+        )
+        if opcao == "0":
+            return
+
+        codigo = int(locacoes.iloc[int(opcao) - 1]["codigo_locacao"])
+        confirmar = config.solicitar_opcao(
+            f"Confirma a exclusão permanente da locação {codigo}? [S/N]: ",
+            ("S", "N")
+        )
+        if confirmar != "S":
+            print("Exclusão cancelada.")
+            return
+
+        oracle.write_transaction([(
+            "delete from locacao where codigo_locacao = :codigo",
+            {"codigo": codigo}
+        )])
+        print(f"Locação {codigo} excluída com sucesso.")
 
     def verifica_existencia_locacao(self, oracle:OracleQueries, codigo:int=None) -> bool:
         # Recupera os dados da nova locação criada transformando em um DataFrame

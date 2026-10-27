@@ -17,7 +17,8 @@ MENU_PRINCIPAL = f"""
 {CYAN}|{RESET}  {GREEN}[1]{RESET}  Relatórios                                                            {CYAN}|{RESET}
 {CYAN}|{RESET}  {GREEN}[2]{RESET}  Cadastrar novo registro                                               {CYAN}|{RESET}
 {CYAN}|{RESET}  {GREEN}[3]{RESET}  Atualizar registro                                                    {CYAN}|{RESET}
-{CYAN}|{RESET}  {GREEN}[4]{RESET}  Inativar cadastro / finalizar locação                                {CYAN}|{RESET}
+{CYAN}|{RESET}  {GREEN}[4]{RESET}  Desativar cadastro / finalizar locação                               {CYAN}|{RESET}
+{CYAN}|{RESET}  {GREEN}[5]{RESET}  Excluir registro permanentemente                                      {CYAN}|{RESET}
 {CYAN}|{RESET}  {RED}[0]{RESET}  Sair do sistema                                                       {CYAN}|{RESET}
 {CYAN}+==============================================================================+{RESET}
 """

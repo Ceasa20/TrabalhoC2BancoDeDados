@@ -1,5 +1,6 @@
 from model.carros import Carros
 from conexion.oracle_queries import OracleQueries
+from utils import config
 import math
 
 class Controller_Carro:
@@ -112,12 +113,12 @@ class Controller_Carro:
             print(f"O carro com placa {placa} não existe.")
             return None
 
-    def excluir_carro(self):
+    def desativar_carro(self):
         oracle = OracleQueries(can_write=True)
         oracle.connect()
 
         placa = self.solicitar_placa(
-            "Placa do carro que irá excluir: "
+            "Placa do carro que deseja desativar: "
         )
 
         if not self.verifica_existencia_carro(oracle, placa):
@@ -140,10 +141,77 @@ class Controller_Carro:
                 "N"
             )
 
-            print("Carro inativado com sucesso.")
+            print("Carro desativado com sucesso.")
             print(carro_inativado.to_string())
         else:
             print(f"O carro com placa {placa} não existe.")
+
+    def excluir_carro(self):
+        oracle = OracleQueries(can_write=True)
+        oracle.connect()
+
+        carros = oracle.sqlToDataFrame(
+            "select placa, marca, modelo from carros order by placa"
+        )
+        if carros.empty:
+            print("Não há veículos cadastrados para excluir.")
+            return
+
+        print("\nVeículos:")
+        for indice, (_, carro) in enumerate(carros.iterrows(), start=1):
+            print(
+                f"[{indice}] Placa: {carro['placa']} | "
+                f"{carro['marca']} {carro['modelo']}"
+            )
+
+        opcoes = ("0",) + tuple(
+            str(indice) for indice in range(1, len(carros) + 1)
+        )
+        opcao = config.solicitar_opcao(
+            "Selecione o veículo que deseja excluir (0 para cancelar): ",
+            opcoes
+        )
+        if opcao == "0":
+            return
+
+        placa = carros.iloc[int(opcao) - 1]["placa"]
+        confirmar = config.solicitar_opcao(
+            f"Confirma a exclusão permanente do veículo {placa}? [S/N]: ",
+            ("S", "N")
+        )
+        if confirmar != "S":
+            print("Exclusão cancelada.")
+            return
+
+        locacoes = oracle.sqlToDataFrame(
+            "select codigo_locacao from locacao where placa = :placa",
+            {"placa": placa}
+        )
+        statements = []
+        if not locacoes.empty:
+            confirmar_locacoes = config.solicitar_opcao(
+                f"Este veículo possui {len(locacoes)} locação(ões). "
+                "Deseja excluir também essas locações? [S/N]: ",
+                ("S", "N")
+            )
+            if confirmar_locacoes != "S":
+                print(
+                    "O veículo não pode ser excluído enquanto houver "
+                    "locações vinculadas."
+                )
+                return
+
+            statements.append((
+                "delete from locacao where placa = :placa",
+                {"placa": placa}
+            ))
+
+        statements.append((
+            "delete from carros where placa = :placa",
+            {"placa": placa}
+        ))
+        oracle.write_transaction(statements)
+        print(f"Veículo {placa} excluído com sucesso.")
 
     def verifica_existencia_carro(
         self,
