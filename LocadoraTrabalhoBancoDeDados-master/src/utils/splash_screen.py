@@ -1,4 +1,3 @@
-
 from conexion.oracle_queries import OracleQueries
 from utils import config
 
@@ -50,7 +49,8 @@ class SplashScreen:
         separador = "+" + "-" * (largura - 2) + "+"
 
         def linha(texto=""):
-            return "| " + str(texto).center(largura - 4)[:largura - 4] + " |"
+            conteudo = str(texto)[:largura - 4]
+            return "| " + conteudo.center(largura - 4) + " |"
 
         linhas = [
             borda,
@@ -58,11 +58,11 @@ class SplashScreen:
             borda,
             linha("RESUMO DE REGISTROS"),
             separador,
-            linha(f"1 - CARROS: {self.get_total_carros()}"),
-            linha(f"2 - CLIENTES: {self.get_total_clientes()}"),
-            linha(f"3 - LOCAÇÕES: {self.get_total_locacao()}"),
+            linha(f"CARROS CADASTRADOS: {self.get_total_carros()}"),
+            linha(f"CLIENTES CADASTRADOS: {self.get_total_clientes()}"),
+            linha(f"LOCAÇÕES REGISTRADAS: {self.get_total_locacao()}"),
             separador,
-            linha("CRIADO POR ALUNOS"),
+            linha("DESENVOLVIDO POR ALUNOS"),
         ]
 
         for criador in self.created_by.splitlines():
