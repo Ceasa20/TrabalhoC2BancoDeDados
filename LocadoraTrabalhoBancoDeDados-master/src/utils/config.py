@@ -1,6 +1,5 @@
 """Configurações e componentes de interface do terminal da locadora."""
 import os
-import sys
 from time import sleep
 
 # Cores ANSI (terminais modernos do Windows e Linux)
@@ -10,8 +9,6 @@ CYAN = "\033[96m"
 GREEN = "\033[92m"
 YELLOW = "\033[93m"
 RED = "\033[91m"
-
-LARGURA_MENU = 80
 
 MENU_PRINCIPAL = f"""
 {CYAN}+==============================================================================+{RESET}
