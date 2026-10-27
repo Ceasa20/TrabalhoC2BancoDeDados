@@ -1,4 +1,3 @@
-
 from pathlib import Path
 
 from conexion.oracle_queries import OracleQueries
@@ -24,50 +23,46 @@ class Relatorio:
             self.query_relatorio_geral = f.read()
 
 
+    def _exibir_relatorio(self, titulo: str, dados):
+        """Padroniza a apresentação dos relatórios no terminal."""
+        largura = 68
+        borda = "=" * largura
+
+        print(f"\n{borda}")
+        print(titulo.center(largura))
+        print(borda)
+        print(dados.to_string(index=False))
+        print(borda)
+        input("\nPressione Enter para voltar ao menu de relatórios...")
+
     def get_relatorio_carros(self):
         # Cria uma nova conexão com o banco que permite alteração
         oracle = OracleQueries()
         oracle.connect()
         # Recupera os dados transformando em um DataFrame
-        print("\n" + "=" * 68)
-        print("RELATÓRIO DE CARROS".center(68))
-        print("=" * 68)
-        print(oracle.sqlToDataFrame(self.query_relatorio_carros).to_string(index=False))
-        print("=" * 68)
-        input("Pressione Enter para Sair do Relatório de Carros")
+        dados = oracle.sqlToDataFrame(self.query_relatorio_carros)
+        self._exibir_relatorio("RELATÓRIO DE CARROS", dados)
 
     def get_relatorio_locacao_por_carro(self):
         # Cria uma nova conexão com o banco que permite alteração
         oracle = OracleQueries()
         oracle.connect()
         # Recupera os dados transformando em um DataFrame
-        print("\n" + "=" * 68)
-        print("RELATÓRIO DE LOCAÇÕES POR CARRO".center(68))
-        print("=" * 68)
-        print(oracle.sqlToDataFrame(self.query_relatorio_locacao_por_carro).to_string(index=False))
-        print("=" * 68)
-        input("Pressione Enter para Sair do Relatório de Locações por Carro")
+        dados = oracle.sqlToDataFrame(self.query_relatorio_locacao_por_carro)
+        self._exibir_relatorio("RELATÓRIO DE LOCAÇÕES POR CARRO", dados)
 
     def get_relatorio_clientes(self):
         # Cria uma nova conexão com o banco que permite alteração
         oracle = OracleQueries()
         oracle.connect()
         # Recupera os dados transformando em um DataFrame
-        print("\n" + "=" * 68)
-        print("RELATÓRIO DE CLIENTES".center(68))
-        print("=" * 68)
-        print(oracle.sqlToDataFrame(self.query_relatorio_clientes).to_string(index=False))
-        print("=" * 68)
-        input("Pressione Enter para Sair do Relatório de Clientes")
+        dados = oracle.sqlToDataFrame(self.query_relatorio_clientes)
+        self._exibir_relatorio("RELATÓRIO DE CLIENTES", dados)
 
     def get_relatorio_geral(self):
         # Cria uma nova conexão com o banco que permite alteração
         oracle = OracleQueries()
         oracle.connect()
         # Recupera os dados transformando em um DataFrame
-        print("\n" + "=" * 68)
-        print("RELATÓRIO GERAL".center(68))
-        print("=" * 68)
-        print(oracle.sqlToDataFrame(self.query_relatorio_geral).to_string(index=False))
-        print("=" * 68)
-        input("Pressione Enter para Sair do Relatório Geral")
+        dados = oracle.sqlToDataFrame(self.query_relatorio_geral)
+        self._exibir_relatorio("RELATÓRIO GERAL", dados)
