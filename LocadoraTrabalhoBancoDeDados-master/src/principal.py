@@ -45,14 +45,30 @@ def atualizar(opcao_atualizar: str = "0"):
         acao()
 
 
-def inativar_ou_finalizar(opcao: str = "0"):
+def desativar_ou_finalizar(opcao: str = "0"):
     acoes = {
-        "1": (relatorio.get_relatorio_clientes, ctrl_cliente.excluir_cliente),
-        "2": (relatorio.get_relatorio_carros, ctrl_carro.excluir_carro),
+        "1": (relatorio.get_relatorio_clientes, ctrl_cliente.desativar_cliente),
+        "2": (relatorio.get_relatorio_carros, ctrl_carro.desativar_carro),
         "3": (relatorio.get_relatorio_locacao_por_carro, ctrl_locacao.finalizar_locacao),
     }
     for acao in acoes.get(opcao, ()):
         acao()
+
+
+def excluir_registro():
+    acoes = {
+        "1": ctrl_cliente.excluir_cliente,
+        "2": ctrl_carro.excluir_carro,
+        "3": ctrl_locacao.excluir_locacao,
+    }
+    print(config.MENU_ENTIDADES)
+    opcao = config.solicitar_opcao(
+        "Selecione a entidade que deseja excluir [0-3]: ",
+        ("0", "1", "2", "3")
+    )
+    if opcao != "0":
+        config.clear_console()
+        acoes[opcao]()
 
 
 def escolher_entidade(acao: str):
@@ -73,8 +89,8 @@ def escolher_entidade(acao: str):
             inserir(opcao)
         elif acao == "atualizar":
             atualizar(opcao)
-        elif acao == "inativar":
-            inativar_ou_finalizar(opcao)
+        elif acao == "desativar":
+            desativar_ou_finalizar(opcao)
 
         config.pausar()
         config.clear_console()
@@ -98,8 +114,8 @@ def run():
         print(config.MENU_PRINCIPAL)
 
         opcao = config.solicitar_opcao(
-            "Escolha uma opção [0-4]: ",
-            ("0", "1", "2", "3", "4")
+            "Escolha uma opção [0-5]: ",
+            ("0", "1", "2", "3", "4", "5")
         )
 
         config.clear_console()
@@ -129,7 +145,10 @@ def run():
             escolher_entidade("atualizar")
 
         elif opcao == "4":
-            escolher_entidade("inativar")
+            escolher_entidade("desativar")
+
+        elif opcao == "5":
+            excluir_registro()
 
         elif opcao == "0":
             print(

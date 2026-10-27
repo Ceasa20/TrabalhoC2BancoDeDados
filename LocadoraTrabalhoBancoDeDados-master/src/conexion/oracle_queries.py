@@ -106,6 +106,18 @@ class OracleQueries:
         self.cur.execute(query, params or {})
         self.conn.commit()
 
+    def write_transaction(self, statements: list):
+        if not self.can_write:
+            raise Exception("Can't write using this connection")
+
+        try:
+            for query, params in statements:
+                self.cur.execute(query, params or {})
+            self.conn.commit()
+        except Exception:
+            self.conn.rollback()
+            raise
+
     def close(self):
         if self.cur is not None:
             self.cur.close()

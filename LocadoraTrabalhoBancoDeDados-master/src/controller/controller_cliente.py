@@ -1,6 +1,7 @@
 
 from model.clientes import Cliente
 from conexion.oracle_queries import OracleQueries
+from utils import config
 import os
 
 
@@ -152,12 +153,12 @@ class Controller_Cliente:
             print(f"O CPF {cpf} não existe.")
             return None
 
-    def excluir_cliente(self):
+    def desativar_cliente(self):
         oracle = OracleQueries(can_write=True)
         oracle.connect()
 
         cpf = self.solicitar_cpf(
-            "CPF do cliente que deseja inativar (0 para voltar): "
+            "CPF do cliente que deseja desativar (0 para voltar): "
         )
 
         if cpf is None:
@@ -182,11 +183,75 @@ class Controller_Cliente:
                 "N"
             )
 
-            print("Cliente inativado com sucesso.")
+            print("Cliente desativado com sucesso.")
             print(cliente_inativado.to_string())
 
         else:
             print(f"O CPF {cpf} não existe.")
+
+    def excluir_cliente(self):
+        oracle = OracleQueries(can_write=True)
+        oracle.connect()
+
+        clientes = oracle.sqlToDataFrame(
+            "select cpf, nome from clientes order by nome"
+        )
+        if clientes.empty:
+            print("Não há clientes cadastrados para excluir.")
+            return
+
+        print("\nClientes:")
+        for indice, (_, cliente) in enumerate(clientes.iterrows(), start=1):
+            print(f"[{indice}] CPF: {cliente['cpf']} | Nome: {cliente['nome']}")
+
+        opcoes = ("0",) + tuple(
+            str(indice) for indice in range(1, len(clientes) + 1)
+        )
+        opcao = config.solicitar_opcao(
+            "Selecione o cliente que deseja excluir (0 para cancelar): ",
+            opcoes
+        )
+        if opcao == "0":
+            return
+
+        cpf = clientes.iloc[int(opcao) - 1]["cpf"]
+        confirmar = config.solicitar_opcao(
+            f"Confirma a exclusão permanente do cliente {cpf}? [S/N]: ",
+            ("S", "N")
+        )
+        if confirmar != "S":
+            print("Exclusão cancelada.")
+            return
+
+        locacoes = oracle.sqlToDataFrame(
+            "select codigo_locacao from locacao where cpf = :cpf",
+            {"cpf": cpf}
+        )
+        statements = []
+        if not locacoes.empty:
+            confirmar_locacoes = config.solicitar_opcao(
+                f"Este cliente possui {len(locacoes)} locação(ões). "
+                "Deseja excluir também essas locações? [S/N]: ",
+                ("S", "N")
+            )
+            if confirmar_locacoes != "S":
+                print(
+                    "O cliente não pode ser excluído enquanto houver "
+                    "locações vinculadas."
+                )
+                return
+
+            statements.append((
+                "delete from locacao where cpf = :cpf",
+                {"cpf": cpf}
+            ))
+
+        statements.append((
+            "delete from clientes where cpf = :cpf",
+            {"cpf": cpf}
+        ))
+        oracle.write_transaction(statements)
+        print(f"Cliente {cpf} excluído com sucesso.")
 
     def verifica_existencia_cliente(
         self, oracle: OracleQueries, cpf: str = None
