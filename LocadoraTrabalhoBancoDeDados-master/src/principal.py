@@ -59,16 +59,23 @@ def escolher_entidade(acao: str):
     """Menu comum para operações de cadastro; 0 sempre retorna ao menu anterior."""
     while True:
         print(config.MENU_ENTIDADES)
-        opcao = config.solicitar_opcao("Selecione [0-3]: ", ("0", "1", "2", "3"))
+        opcao = config.solicitar_opcao(
+            "Selecione [0-3]: ",
+            ("0", "1", "2", "3")
+        )
+
         if opcao == "0":
             return
+
         config.clear_console()
+
         if acao == "inserir":
             inserir(opcao)
         elif acao == "atualizar":
             atualizar(opcao)
         elif acao == "inativar":
             inativar_ou_finalizar(opcao)
+
         config.pausar()
         config.clear_console()
 
@@ -79,30 +86,57 @@ def run():
         try:
             print(SplashScreen().get_updated_screen())
         except Exception as erro:
-            print(f"{config.YELLOW}Resumo do banco indisponível: {erro}{config.RESET}")
-            print("O menu será exibido mesmo assim. Verifique a conexão Oracle.\n")
+            print(
+                f"{config.YELLOW}Resumo do banco indisponível: "
+                f"{erro}{config.RESET}"
+            )
+            print(
+                "O menu será exibido mesmo assim. "
+                "Verifique a conexão Oracle.\n"
+            )
+
         print(config.MENU_PRINCIPAL)
-        opcao = config.solicitar_opcao("Escolha uma opção [0-4]: ", ("0", "1", "2", "3", "4"))
+
+        opcao = config.solicitar_opcao(
+            "Escolha uma opção [0-4]: ",
+            ("0", "1", "2", "3", "4")
+        )
+
         config.clear_console()
 
         if opcao == "1":
             while True:
                 print(config.MENU_RELATORIOS)
-                escolha = config.solicitar_opcao("Selecione um relatório [0-4]: ", ("0", "1", "2", "3", "4"))
+
+                escolha = config.solicitar_opcao(
+                    "Selecione um relatório [0-4]: ",
+                    ("0", "1", "2", "3", "4")
+                )
+
                 if escolha == "0":
                     break
+
                 config.clear_console()
                 reports(escolha)
-                config.pausar()
+
+                # Os métodos de relatório já aguardam Enter; evita uma segunda pausa.
                 config.clear_console()
+
         elif opcao == "2":
             escolher_entidade("inserir")
+
         elif opcao == "3":
             escolher_entidade("atualizar")
+
         elif opcao == "4":
             escolher_entidade("inativar")
+
         elif opcao == "0":
-            print("Obrigado por utilizar o Sistema de Locação de Veículos.")
+            print(
+                f"\n{config.GREEN}"
+                "Obrigado por utilizar o Sistema de Locação de Veículos."
+                f"{config.RESET}"
+            )
             break
 
 
