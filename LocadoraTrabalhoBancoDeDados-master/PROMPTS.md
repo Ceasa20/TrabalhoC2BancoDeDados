@@ -109,3 +109,9 @@ Este arquivo registra solicitações feitas a ferramentas de IA durante o desenv
 - **Prompt utilizado (resumido):** Considerando a execução em uma VM Linux com Oracle, revise o projeto em busca de erros críticos, sem alterar arquivos, e diferencie problemas confirmados dos que dependem da configuração.
 - **Fonte:** Copilot no VS Code.
 - **O que o grupo fez com a resposta:** Registrou para avaliação o risco de permitir mais de uma locação em andamento para o mesmo carro e verificou os pontos de configuração de schema e de execução inicial dos scripts. A observação sobre o comando `clear` foi considerada não aplicável ao ambiente Linux planejado.
+
+## 19. Adicionar exclusão permanente sem remover a desativação
+
+- **Prompt utilizado (resumido):** Mantenha a função atual de desativar clientes e carros e finalizar locações, mas adicione uma nova opção no menu para excluir permanentemente registros, com listagem, seleção e confirmação. Para clientes e carros com locações vinculadas, pergunte se as locações também devem ser excluídas.
+- **Fonte:** Copilot no VS Code.
+- **O que o grupo fez com a resposta:** O menu passou a oferecer separadamente a desativação/finalização e a exclusão permanente. A exclusão lista os registros com chave primária e campos descritivos, permite seleção numerada e exige confirmação. Para cliente ou carro com locações vinculadas, a confirmação permite excluir as locações dependentes e o registro principal em uma única transação; sem essa confirmação, a exclusão é bloqueada.

@@ -136,11 +136,26 @@ Sistema desenvolvido em Python para gerenciar uma locadora de veículos utilizan
 
 ## Funcionalidades
 
-- Cadastro, consulta, alteração e desativação de clientes;
-- Cadastro, consulta, alteração e desativação de carros;
-- Cadastro e gerenciamento de locações;
+- Cadastro, consulta e alteração de clientes e carros;
+- Desativação de clientes e carros, preservando seus registros no banco;
+- Cadastro, consulta, alteração e finalização de locações;
+- Exclusão permanente de clientes, carros e locações;
 - Registro da devolução dos veículos;
 - Relatórios relacionados às operações da locadora.
+
+### Desativação e exclusão de registros
+
+No menu principal, a opção **4** mantém a desativação de clientes e carros e a
+finalização de locações. Desativar um cliente ou carro altera seu status para
+inativo, sem remover o registro do banco de dados.
+
+A opção **5** permite excluir permanentemente um cliente, um carro ou uma
+locação. O sistema lista os registros com suas chaves e campos descritivos,
+permite selecionar um deles por número e solicita confirmação antes de excluir.
+Para clientes ou carros que possuem locações vinculadas, o sistema pergunta se
+as locações também devem ser excluídas. Se a resposta for negativa, o registro
+principal não é removido; se for positiva, as locações relacionadas e o registro
+selecionado são excluídos na mesma transação.
 
 ## Tecnologias
 
@@ -169,10 +184,10 @@ Sistema desenvolvido em Python para gerenciar uma locadora de veículos utilizan
 - [x] Script Python;
 - [x] Relatórios SQL;
 
-### Precisa ser feito
+### Em andamento
 
 - [ ] Testes.
-- [ ] Funcionamento com SUDO.
+
 
 
 ### Configuração do ambiente de desenvolvimento sem SUDO
@@ -252,5 +267,4 @@ python test.py
 ```
 
 A execução foi validada com sucesso, incluindo conexão com o Oracle, execução de consultas SQL e retorno de resultados em DataFrames e JSON.
-
 
