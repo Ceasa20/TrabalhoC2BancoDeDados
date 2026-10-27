@@ -11,6 +11,8 @@ GREEN = "\033[92m"
 YELLOW = "\033[93m"
 RED = "\033[91m"
 
+LARGURA_MENU = 80
+
 MENU_PRINCIPAL = f"""
 {CYAN}+==============================================================================+{RESET}
 {CYAN}|{RESET}                    {BOLD}SISTEMA DE LOCAÇÃO DE VEÍCULOS{RESET}                       {CYAN}|{RESET}
@@ -53,13 +55,18 @@ def solicitar_opcao(prompt: str, opcoes_validas: tuple) -> str:
     """Solicita uma opção até o usuário digitar uma das opções permitidas."""
     while True:
         try:
-            opcao = input(prompt).strip()
+            opcao = input(f"{CYAN}{prompt}{RESET}").strip()
         except (EOFError, KeyboardInterrupt):
-            print("\nOperação cancelada.")
+            print(f"\n{YELLOW}Operação cancelada.{RESET}")
             return "0" if "0" in opcoes_validas else opcoes_validas[-1]
+
         if opcao in opcoes_validas:
             return opcao
-        print(f"\n{RED}[!] Opção inválida.{RESET} Escolha: {', '.join(opcoes_validas)}.\n")
+
+        print(
+            f"\n{RED}[ERRO] Opção inválida.{RESET} "
+            f"Escolha uma das opções: {', '.join(opcoes_validas)}.\n"
+        )
 
 
 def pausar(mensagem="Pressione Enter para continuar..."):
@@ -74,4 +81,5 @@ def clear_console(wait_time: int = 0):
     """Limpa a tela no Windows ou Linux/macOS, opcionalmente após uma pausa."""
     if wait_time > 0:
         sleep(wait_time)
+
     os.system("cls" if os.name == "nt" else "clear")
